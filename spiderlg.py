@@ -6,7 +6,7 @@ import time
 import MySQLdb
 
 
-SERCHKEY = '爬虫'
+SERCHKEY = '爬虫' #your special keyword
 
 url = 'https://www.lagou.com/jobs/positionAjax.json?'
 
@@ -137,36 +137,27 @@ try:
 
 	recount = int(resultdict.get('content').get('positionResult').get('totalCount'))
 
-	print repsize,recount
 
 	pagetotal = recount/repsize + 1
 
-	lastpagesize  = recount%repsize
 
-	ResultList = load_page_field(resultdict.get('content').get('positionResult').get('result'),repsize)
+	ResultList = load_page_field(resultdict.get('content').get('positionResult').get('result'),int(resultdict.get('content').get('positionResult').get('resultSize')))
 	
 	InsertString = table_insert_string()
 	cur.executemany(InsertString,ResultList)
 
-	print pagetotal
-	print lastpagesize
-	#print ResultList
 
 	
 	pagenum =1 
 	while pagenum <pagetotal:
 		time.sleep(5)
 		pagenum+=1
-		print pagenum
 		params = create_params(False,pagenum,SERCHKEY)
-		print params
 		res = requests.post(url,headers=headers,data=params)
 		resultdict = json_loads_byteified(res.text)
-		if pagenum == pagetotal:
-			repsize = lastpagesize
 
 
-		TempResult = load_page_field(resultdict.get('content').get('positionResult').get('result'),repsize)
+		TempResult = load_page_field(resultdict.get('content').get('positionResult').get('result'),int(resultdict.get('content').get('positionResult').get('resultSize')))
 		
 		cur.executemany(InsertString,TempResult)
 
